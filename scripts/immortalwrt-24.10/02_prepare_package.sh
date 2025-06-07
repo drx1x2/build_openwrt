@@ -14,16 +14,7 @@ sed -i 's/Os/O2/g' include/target.mk
 sed -i '/CONFIG_BUILDBOT/d' include/feeds.mk
 sed -i 's/;)\s*\\/; \\/' include/feeds.mk
 
-### FIREWALL ###
-# custom nft command
-patch -p1 < ../patch/firewall/100-openwrt-firewall4-add-custom-nft-command-support.patch
-# patch LuCI 以支持自定义 nft 规则
-pushd feeds/luci
-patch -p1 < ../../../patch/firewall/04-luci-add-firewall4-nft-rules-file.patch
-popd
 
-### 替换准备 ###
-rm -rf feeds/packages/net/{v2ray-geodata,mosdns,sing-box}
 
 ### 额外的 LuCI 应用和依赖 ###
 mkdir -p package/new
@@ -43,36 +34,15 @@ mkdir -p feeds/packages/utils/cgroupfs-mount/patches
 cp -rf ../patch/cgroupfs-mount/900-mount-cgroup-v2-hierarchy-to-sys-fs-cgroup-cgroup2.patch ./feeds/packages/utils/cgroupfs-mount/patches/
 cp -rf ../patch/cgroupfs-mount/901-fix-cgroupfs-umount.patch ./feeds/packages/utils/cgroupfs-mount/patches/
 cp -rf ../patch/cgroupfs-mount/902-mount-sys-fs-cgroup-systemd-for-docker-systemd-suppo.patch ./feeds/packages/utils/cgroupfs-mount/patches/
-# sing-box
-cp -rf ../openwrt-apps/openwrt_helloworld/sing-box ./package/new/sing-box
-# Mosdns
-cp -rf ../openwrt-apps/luci-app-mosdns ./package/new/luci-app-mosdns
-cp -rf ../openwrt-apps/openwrt_helloworld/v2ray-geodata ./package/new/v2ray-geodata
-# Samba4
-sed -i 's,nas,services,g' feeds/luci/applications/luci-app-samba4/root/usr/share/luci/menu.d/luci-app-samba4.json
-# Cpufreq
-sed -i 's,system,services,g' feeds/luci/applications/luci-app-cpufreq/root/usr/share/luci/menu.d/luci-app-cpufreq.json
+
 # HD-idle
 sed -i 's,nas,services,g' feeds/luci/applications/luci-app-hd-idle/root/usr/share/luci/menu.d/luci-app-hd-idle.json
-# Vsftpd
-pushd feeds/luci/applications/luci-app-vsftpd
-move_2_services nas
-popd
-# Rclone
-sed -i 's,\"nas\",\"services\",g;s,NAS,Services,g' feeds/luci/applications/luci-app-rclone/luasrc/controller/rclone.lua
+
 # Docker 容器
 sed -i '/auto_start/d' feeds/luci/applications/luci-app-dockerman/root/etc/uci-defaults/luci-app-dockerman
 pushd feeds/luci/applications/luci-app-dockerman
 docker_2_services
 popd
-# Nlbw 带宽监控
-sed -i 's,services,network,g' feeds/luci/applications/luci-app-nlbwmon/root/usr/share/luci/menu.d/luci-app-nlbwmon.json
-# Verysync
-pushd feeds/luci/applications/luci-app-verysync
-move_2_services nas
-popd
-# Nikki
-cp -rf ../openwrt-apps/OpenWrt-nikki ./package/new/luci-app-nikki
 # 晶晨宝盒
 cp -rf ../amlogic/luci-app-amlogic ./package/new/luci-app-amlogic
 
